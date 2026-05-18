@@ -40,6 +40,11 @@ BLOCKED_PATTERNS = [
     # 系统级破坏
     (r'(?:^|\s)rm\s+-rf\s+[\/~](\s|$|;)', "rm -rf / or ~ (system/homedir destruction)"),
     (r'(?:^|\s)rm\s+-rf\s+(?:/\s|/\w)', "rm -rf /path (root-level deletion)"),
+    (r'(?:^|\s)rm\s+-r[f]?\s+(?:/\s|/\w)', "rm -r /path (recursive root deletion)"),
+    (r'(?:^|\s)rm\s+-f\s+(?:/\s|/\w)', "rm -f /path (force root deletion)"),
+    
+    # 破坏性fork炸弹
+    (r':\(\)\s*\{', "Bash fork bomb (denial of service)"),
     
     # 数据库破坏
     (r'\bDROP\s+(?:TABLE|DATABASE|SCHEMA)\b', "DROP TABLE/DATABASE/SCHEMA (data loss)"),
@@ -60,6 +65,21 @@ BLOCKED_PATTERNS = [
     
     # 高危参数
     (r'\brm\s+.*--no-preserve-root\b', "rm with --no-preserve-root (bypass safety)"),
+    
+    # 远程代码执行 / 管道至shell
+    (r'\b(?:curl|wget)\s.*?[|]\s*(?:bash|sh|zsh)\b', "pipe from curl/wget to shell (remote exec)"),
+    
+    # 敏感文件泄露
+    (r'\bcat\s+/etc/shadow\b', "read /etc/shadow (credential leak)"),
+    (r'\bcat\s+.*id_rsa\b', "read SSH private key"),
+    (r'\bgrep\s+-r.*password\s+/', "recursive grep for password in / (data leak)"),
+    
+    # 数据库全量导出
+    (r'\bmysqldump\b', "mysqldump (database export)"),
+    (r'\bpg_dumpall\b', "pg_dumpall (full database export)"),
+    
+    # 凭证泄漏
+    (r'\benv\b.*\b(?:TOKEN|API_KEY|SECRET|PASSWORD)\b', "environment variable credential leak"),
 ]
 
 # ⚪ 白名单（允许看似危险但实际安全的操作）
